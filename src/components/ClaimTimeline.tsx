@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { CheckAdmissibilityStage } from "./CheckAdmissibilityStage";
 import { DocumentVerificationStage } from "./DocumentVerificationStage";
+import { ClaimVerificationStage } from "./ClaimVerificationStage";
 
-type StageStatus = "Pending" | "Submitted" | "On Hold" | "Cancelled" | "Completed";
+type StageStatus = "Pending" | "Submitted" | "On Hold" | "Cancelled" | "Completed" | "Rejected";
 
 interface Stage {
   id: number;
@@ -25,6 +26,7 @@ function getStatusStyle(status: StageStatus): string {
     case "On Hold":
       return "bg-amber-100 text-amber-700";
     case "Cancelled":
+    case "Rejected":
       return "bg-red-100 text-red-700";
     case "Pending":
     default:
@@ -106,6 +108,51 @@ export function ClaimTimeline({ stages, onStagesUpdate }: ClaimTimelineProps) {
     onStagesUpdate?.(updatedStages);
   };
 
+  // Stage 3 (Claim Verification) handlers
+  const handleApproveClaim = (amount: number, notes: string) => {
+    console.log("Claim approved - Amount:", amount, "Notes:", notes);
+    const updatedStages: Stage[] = [
+      ...localStages.map((stage) => 
+        stage.title === "Claim Verification" 
+          ? { ...stage, status: "Completed" as StageStatus, dateTime: generateTimestamp() } 
+          : stage
+      ),
+      { id: localStages.length + 1, title: "Payment Processing", dateTime: null, status: "Pending" }
+    ];
+    
+    setLocalStages(updatedStages);
+    setExpandedStageId(null);
+    onStagesUpdate?.(updatedStages);
+  };
+
+  const handleSendToVet = (note: string) => {
+    console.log("Sent to vet investigation:", note);
+    const updatedStages: Stage[] = [
+      ...localStages.map((stage) => 
+        stage.title === "Claim Verification" 
+          ? { ...stage, status: "On Hold" as StageStatus } 
+          : stage
+      ),
+      { id: localStages.length + 1, title: "Vet Investigation", dateTime: null, status: "Pending" }
+    ];
+    
+    setLocalStages(updatedStages);
+    setExpandedStageId(null);
+    onStagesUpdate?.(updatedStages);
+  };
+
+  const handleRejectClaim = (reason: string) => {
+    console.log("Claim rejected:", reason);
+    const updatedStages = localStages.map(stage => 
+      stage.title === "Claim Verification" 
+        ? { ...stage, status: "Rejected" as StageStatus, dateTime: generateTimestamp() } 
+        : stage
+    );
+    setLocalStages(updatedStages);
+    setExpandedStageId(null);
+    onStagesUpdate?.(updatedStages);
+  };
+
   const renderExpandedStage = (stage: Stage) => {
     if (expandedStageId !== stage.id) return null;
 
@@ -123,6 +170,15 @@ export function ClaimTimeline({ stages, onStagesUpdate }: ClaimTimelineProps) {
           <DocumentVerificationStage
             onApprove={handleApproveDocuments}
             onRequestDocuments={handleRequestDocumentsStage2}
+            onClose={() => setExpandedStageId(null)}
+          />
+        );
+      case "Claim Verification":
+        return (
+          <ClaimVerificationStage
+            onApprove={handleApproveClaim}
+            onSendToVet={handleSendToVet}
+            onReject={handleRejectClaim}
             onClose={() => setExpandedStageId(null)}
           />
         );
