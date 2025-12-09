@@ -2,8 +2,9 @@ import { useState } from "react";
 import { CheckAdmissibilityStage } from "./CheckAdmissibilityStage";
 import { DocumentVerificationStage } from "./DocumentVerificationStage";
 import { ClaimVerificationStage } from "./ClaimVerificationStage";
+import { VetInvestigationStage } from "./VetInvestigationStage";
 
-type StageStatus = "Pending" | "Submitted" | "On Hold" | "Cancelled" | "Completed" | "Rejected";
+type StageStatus = "Pending" | "Submitted" | "On Hold" | "Cancelled" | "Completed" | "Rejected" | "Pending with Vet";
 
 interface Stage {
   id: number;
@@ -25,6 +26,8 @@ function getStatusStyle(status: StageStatus): string {
       return "bg-primary/10 text-primary";
     case "On Hold":
       return "bg-amber-100 text-amber-700";
+    case "Pending with Vet":
+      return "bg-blue-100 text-blue-700";
     case "Cancelled":
     case "Rejected":
       return "bg-red-100 text-red-700";
@@ -133,11 +136,11 @@ export function ClaimTimeline({ stages, onStagesUpdate }: ClaimTimelineProps) {
           ? { ...stage, status: "On Hold" as StageStatus } 
           : stage
       ),
-      { id: localStages.length + 1, title: "Vet Investigation", dateTime: null, status: "Pending" }
+      { id: localStages.length + 1, title: "Vet Investigation", dateTime: null, status: "Pending with Vet" }
     ];
     
     setLocalStages(updatedStages);
-    setExpandedStageId(null);
+    setExpandedStageId(localStages.length + 1); // Auto-expand Vet Investigation
     onStagesUpdate?.(updatedStages);
   };
 
@@ -150,6 +153,64 @@ export function ClaimTimeline({ stages, onStagesUpdate }: ClaimTimelineProps) {
     );
     setLocalStages(updatedStages);
     setExpandedStageId(null);
+    onStagesUpdate?.(updatedStages);
+  };
+
+  // Stage 4 (Vet Investigation) handlers
+  const handleVetApprove = (amount: number, notes: string) => {
+    console.log("Vet stage - Claim approved:", amount, notes);
+    const updatedStages: Stage[] = [
+      ...localStages.map((stage) => {
+        if (stage.title === "Vet Investigation") {
+          return { ...stage, status: "Completed" as StageStatus, dateTime: generateTimestamp() };
+        }
+        if (stage.title === "Claim Verification") {
+          return { ...stage, status: "Completed" as StageStatus, dateTime: generateTimestamp() };
+        }
+        return stage;
+      }),
+      { id: localStages.length + 1, title: "Payment Processing", dateTime: null, status: "Pending" }
+    ];
+    
+    setLocalStages(updatedStages);
+    setExpandedStageId(null);
+    onStagesUpdate?.(updatedStages);
+  };
+
+  const handleVetReject = (reason: string) => {
+    console.log("Vet stage - Claim rejected:", reason);
+    const updatedStages = localStages.map(stage => {
+      if (stage.title === "Vet Investigation") {
+        return { ...stage, status: "Completed" as StageStatus, dateTime: generateTimestamp() };
+      }
+      if (stage.title === "Claim Verification") {
+        return { ...stage, status: "Rejected" as StageStatus, dateTime: generateTimestamp() };
+      }
+      return stage;
+    });
+    setLocalStages(updatedStages);
+    setExpandedStageId(null);
+    onStagesUpdate?.(updatedStages);
+  };
+
+  const handleVetRequestDocs = (note: string) => {
+    console.log("Vet stage - Requesting documents:", note);
+    // Send back to Document Verification
+    const updatedStages: Stage[] = [
+      ...localStages.map((stage) => {
+        if (stage.title === "Vet Investigation") {
+          return { ...stage, status: "Cancelled" as StageStatus };
+        }
+        if (stage.title === "Claim Verification") {
+          return { ...stage, status: "Cancelled" as StageStatus };
+        }
+        return stage;
+      }),
+      { id: localStages.length + 1, title: "Document Verification", dateTime: null, status: "Pending" }
+    ];
+    
+    setLocalStages(updatedStages);
+    setExpandedStageId(localStages.length + 1);
     onStagesUpdate?.(updatedStages);
   };
 
@@ -179,6 +240,15 @@ export function ClaimTimeline({ stages, onStagesUpdate }: ClaimTimelineProps) {
             onApprove={handleApproveClaim}
             onSendToVet={handleSendToVet}
             onReject={handleRejectClaim}
+            onClose={() => setExpandedStageId(null)}
+          />
+        );
+      case "Vet Investigation":
+        return (
+          <VetInvestigationStage
+            onApprove={handleVetApprove}
+            onReject={handleVetReject}
+            onRequestDocuments={handleVetRequestDocs}
             onClose={() => setExpandedStageId(null)}
           />
         );
