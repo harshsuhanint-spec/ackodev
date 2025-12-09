@@ -55,9 +55,10 @@ export function ClaimTimeline({ stages, onStagesUpdate }: ClaimTimelineProps) {
 
   // Stage 1 handlers
   const handleApproveAdmissibility = () => {
+    // All docs approved in Stage 1 → Skip to Claim Verification (Stage 3)
     const updatedStages: Stage[] = [
       { ...localStages[0], status: "Completed", dateTime: generateTimestamp() },
-      { id: 2, title: "Document Verification", dateTime: null, status: "Pending" }
+      { id: 2, title: "Claim Verification", dateTime: null, status: "Pending" }
     ];
     
     setLocalStages(updatedStages);
@@ -66,22 +67,27 @@ export function ClaimTimeline({ stages, onStagesUpdate }: ClaimTimelineProps) {
   };
 
   const handleRequestDocumentsStage1 = (note: string) => {
+    // Request docs → Create Document Verification stage (Stage 2)
     console.log("Stage 1 - Document request note:", note);
-    const updatedStages = localStages.map(stage => 
-      stage.id === 1 ? { ...stage, status: "On Hold" as StageStatus } : stage
-    );
+    const updatedStages: Stage[] = [
+      { ...localStages[0], status: "Completed", dateTime: generateTimestamp() },
+      { id: 2, title: "Document Verification", dateTime: null, status: "Pending" }
+    ];
     setLocalStages(updatedStages);
-    setExpandedStageId(null);
+    setExpandedStageId(2); // Auto-expand Stage 2
     onStagesUpdate?.(updatedStages);
   };
 
-  // Stage 2 handlers
+  // Stage 2 (Document Verification) handlers
   const handleApproveDocuments = () => {
+    // All docs approved → Move to Claim Verification
     const updatedStages: Stage[] = [
-      ...localStages.slice(0, 2).map((stage, index) => 
-        index === 1 ? { ...stage, status: "Completed" as StageStatus, dateTime: generateTimestamp() } : stage
+      ...localStages.map((stage) => 
+        stage.title === "Document Verification" 
+          ? { ...stage, status: "Completed" as StageStatus, dateTime: generateTimestamp() } 
+          : stage
       ),
-      { id: 3, title: "Claim Verification", dateTime: null, status: "Pending" }
+      { id: localStages.length + 1, title: "Claim Verification", dateTime: null, status: "Pending" }
     ];
     
     setLocalStages(updatedStages);
@@ -90,9 +96,10 @@ export function ClaimTimeline({ stages, onStagesUpdate }: ClaimTimelineProps) {
   };
 
   const handleRequestDocumentsStage2 = (note: string) => {
+    // Request docs again → Keep stage On Hold, waiting for customer re-upload
     console.log("Stage 2 - Document request note:", note);
     const updatedStages = localStages.map(stage => 
-      stage.id === 2 ? { ...stage, status: "On Hold" as StageStatus } : stage
+      stage.title === "Document Verification" ? { ...stage, status: "On Hold" as StageStatus } : stage
     );
     setLocalStages(updatedStages);
     setExpandedStageId(null);
