@@ -162,32 +162,12 @@ export function PaymentProcessingStage({
             Payout Summary
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent>
           {/* Final Amount - Prominent */}
           <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 text-center">
             <p className="text-sm text-muted-foreground">Final Admissible Amount</p>
             <p className="text-3xl font-bold text-primary mt-1">₹{approvedAmount.toLocaleString()}</p>
             <Badge variant="secondary" className="mt-2">Read-only</Badge>
-          </div>
-
-          {/* Bills Breakdown */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <div className="bg-background rounded-lg p-3 text-center">
-              <p className="text-xs text-muted-foreground">Bills Submitted</p>
-              <p className="text-lg font-semibold">₹{billsSummary.totalSubmitted.toLocaleString()}</p>
-            </div>
-            <div className="bg-background rounded-lg p-3 text-center">
-              <p className="text-xs text-muted-foreground">Bills Approved</p>
-              <p className="text-lg font-semibold text-green-600">₹{billsSummary.totalApproved.toLocaleString()}</p>
-            </div>
-            <div className="bg-background rounded-lg p-3 text-center">
-              <p className="text-xs text-muted-foreground">Deductibles</p>
-              <p className="text-lg font-semibold text-amber-600">₹{billsSummary.deductibles.toLocaleString()}</p>
-            </div>
-            <div className="bg-background rounded-lg p-3 text-center">
-              <p className="text-xs text-muted-foreground">Non-Payables</p>
-              <p className="text-lg font-semibold text-red-600">₹{billsSummary.nonPayables.toLocaleString()}</p>
-            </div>
           </div>
         </CardContent>
       </Card>
