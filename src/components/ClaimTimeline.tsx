@@ -56,6 +56,7 @@ function generateTimestamp(): string {
 export function ClaimTimeline({ stages, onStagesUpdate }: ClaimTimelineProps) {
   const [expandedStageId, setExpandedStageId] = useState<number | null>(null);
   const [localStages, setLocalStages] = useState(stages);
+  const [approvedAmount, setApprovedAmount] = useState<number>(0);
 
   const handleStageClick = (stageId: number) => {
     setExpandedStageId(prev => prev === stageId ? null : stageId);
@@ -117,6 +118,7 @@ export function ClaimTimeline({ stages, onStagesUpdate }: ClaimTimelineProps) {
   // Stage 3 (Claim Verification) handlers
   const handleApproveClaim = (amount: number, notes: string) => {
     console.log("Claim approved - Amount:", amount, "Notes:", notes);
+    setApprovedAmount(amount); // Store the approved amount
     const updatedStages: Stage[] = [
       ...localStages.map((stage) => 
         stage.title === "Claim Verification" 
@@ -127,7 +129,7 @@ export function ClaimTimeline({ stages, onStagesUpdate }: ClaimTimelineProps) {
     ];
     
     setLocalStages(updatedStages);
-    setExpandedStageId(null);
+    setExpandedStageId(localStages.length + 1); // Auto-expand Payment Processing
     onStagesUpdate?.(updatedStages);
   };
 
@@ -162,6 +164,7 @@ export function ClaimTimeline({ stages, onStagesUpdate }: ClaimTimelineProps) {
   // Stage 4 (Vet Investigation) handlers
   const handleVetApprove = (amount: number, notes: string) => {
     console.log("Vet stage - Claim approved:", amount, notes);
+    setApprovedAmount(amount); // Store the approved amount from vet stage
     const updatedStages: Stage[] = [
       ...localStages.map((stage) => {
         if (stage.title === "Vet Investigation") {
@@ -176,7 +179,7 @@ export function ClaimTimeline({ stages, onStagesUpdate }: ClaimTimelineProps) {
     ];
     
     setLocalStages(updatedStages);
-    setExpandedStageId(null);
+    setExpandedStageId(localStages.length + 1); // Auto-expand Payment Processing
     onStagesUpdate?.(updatedStages);
   };
 
@@ -294,6 +297,7 @@ export function ClaimTimeline({ stages, onStagesUpdate }: ClaimTimelineProps) {
       case "Payment Processing":
         return (
           <PaymentProcessingStage
+            approvedAmount={approvedAmount}
             onProcessPayment={handleProcessPayment}
             onHold={handlePaymentHold}
             onReject={handlePaymentReject}
