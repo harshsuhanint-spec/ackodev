@@ -3,8 +3,9 @@ import { CheckAdmissibilityStage } from "./CheckAdmissibilityStage";
 import { DocumentVerificationStage } from "./DocumentVerificationStage";
 import { ClaimVerificationStage } from "./ClaimVerificationStage";
 import { VetInvestigationStage } from "./VetInvestigationStage";
+import { PaymentProcessingStage } from "./PaymentProcessingStage";
 
-type StageStatus = "Pending" | "Submitted" | "On Hold" | "Cancelled" | "Completed" | "Rejected" | "Pending with Vet";
+type StageStatus = "Pending" | "Submitted" | "On Hold" | "Cancelled" | "Completed" | "Rejected" | "Pending with Vet" | "Processing";
 
 interface Stage {
   id: number;
@@ -27,6 +28,8 @@ function getStatusStyle(status: StageStatus): string {
     case "On Hold":
       return "bg-amber-100 text-amber-700";
     case "Pending with Vet":
+      return "bg-blue-100 text-blue-700";
+    case "Processing":
       return "bg-blue-100 text-blue-700";
     case "Cancelled":
     case "Rejected":
@@ -214,6 +217,42 @@ export function ClaimTimeline({ stages, onStagesUpdate }: ClaimTimelineProps) {
     onStagesUpdate?.(updatedStages);
   };
 
+  // Stage 5 (Payment Processing) handlers
+  const handleProcessPayment = () => {
+    console.log("Payment processed");
+    const updatedStages = localStages.map(stage => 
+      stage.title === "Payment Processing" 
+        ? { ...stage, status: "Completed" as StageStatus, dateTime: generateTimestamp() } 
+        : stage
+    );
+    setLocalStages(updatedStages);
+    onStagesUpdate?.(updatedStages);
+  };
+
+  const handlePaymentHold = (reason: string) => {
+    console.log("Payment on hold:", reason);
+    const updatedStages = localStages.map(stage => 
+      stage.title === "Payment Processing" 
+        ? { ...stage, status: "On Hold" as StageStatus } 
+        : stage
+    );
+    setLocalStages(updatedStages);
+    setExpandedStageId(null);
+    onStagesUpdate?.(updatedStages);
+  };
+
+  const handlePaymentReject = (reason: string) => {
+    console.log("Payment rejected:", reason);
+    const updatedStages = localStages.map(stage => 
+      stage.title === "Payment Processing" 
+        ? { ...stage, status: "Rejected" as StageStatus, dateTime: generateTimestamp() } 
+        : stage
+    );
+    setLocalStages(updatedStages);
+    setExpandedStageId(null);
+    onStagesUpdate?.(updatedStages);
+  };
+
   const renderExpandedStage = (stage: Stage) => {
     if (expandedStageId !== stage.id) return null;
 
@@ -249,6 +288,15 @@ export function ClaimTimeline({ stages, onStagesUpdate }: ClaimTimelineProps) {
             onApprove={handleVetApprove}
             onReject={handleVetReject}
             onRequestDocuments={handleVetRequestDocs}
+            onClose={() => setExpandedStageId(null)}
+          />
+        );
+      case "Payment Processing":
+        return (
+          <PaymentProcessingStage
+            onProcessPayment={handleProcessPayment}
+            onHold={handlePaymentHold}
+            onReject={handlePaymentReject}
             onClose={() => setExpandedStageId(null)}
           />
         );
