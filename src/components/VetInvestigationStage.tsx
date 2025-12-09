@@ -56,12 +56,12 @@ export function VetInvestigationStage({
   onClose
 }: VetInvestigationStageProps) {
   const { toast } = useToast();
-  const [vetSubmitted, setVetSubmitted] = useState(false);
+  const [vetSubmitted, setVetSubmitted] = useState(true); // Auto-filled: already submitted
   const [vetFindings, setVetFindings] = useState<VetFindings>({
-    assessment: "",
-    comments: "",
-    recommendation: "",
-    uploadedFiles: []
+    assessment: "Medically Justified",
+    comments: "Injury consistent with described incident. Surgery was medically necessary based on X-ray findings showing foreign object obstruction.",
+    recommendation: "Approve",
+    uploadedFiles: ["vet_assessment_notes.pdf"]
   });
   
   // Handler action states
