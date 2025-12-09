@@ -17,14 +17,12 @@ const claimData = {
     policyPeriod: "4 November, 2024 - 2 November, 2025",
     referenceId: "DMAG0000760",
     claimNumber: "PETCLM00012345",
-    claimStatus: "Pending Verification",
+    claimStatus: "Pending Admissibility Check",
     claimType: "Injury",
     createdOn: "Dec 05, 2025",
     lastUpdatedOn: "Dec 08, 2025",
     stages: [
-      { id: 1, title: "Check Admissibility", dateTime: "12:04 PM | Dec 05, 2025", status: "Completed" as const },
-      { id: 2, title: "Documents Requested", dateTime: "7:38 PM | Dec 06, 2025", status: "Submitted" as const },
-      { id: 3, title: "Claim Verification", dateTime: null, status: "Pending" as const },
+      { id: 1, title: "Check Admissibility", dateTime: null, status: "Pending" as const },
     ],
   },
   PETCLM00012312: {
@@ -37,13 +35,12 @@ const claimData = {
     policyPeriod: "1 January, 2025 - 31 December, 2025",
     referenceId: "DMAG0000761",
     claimNumber: "PETCLM00012312",
-    claimStatus: "Document Requested",
+    claimStatus: "Pending Admissibility Check",
     claimType: "Illness",
     createdOn: "Nov 28, 2025",
     lastUpdatedOn: "Dec 07, 2025",
     stages: [
-      { id: 1, title: "Check Admissibility", dateTime: "10:30 AM | Nov 28, 2025", status: "Completed" as const },
-      { id: 2, title: "Documents Requested", dateTime: null, status: "Pending" as const },
+      { id: 1, title: "Check Admissibility", dateTime: null, status: "Pending" as const },
     ],
   },
 };
