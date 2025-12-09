@@ -1,5 +1,3 @@
-import { Check } from "lucide-react";
-
 type StageStatus = "Pending" | "Submitted" | "On Hold" | "Cancelled" | "Completed";
 
 interface Stage {
@@ -30,12 +28,9 @@ function getStatusStyle(status: StageStatus): string {
 }
 
 export function ClaimTimeline({ stages }: ClaimTimelineProps) {
-  // Reverse the stages so newest (highest number) appears at top
-  const sortedStages = [...stages].sort((a, b) => b.id - a.id);
-
   return (
     <div className="space-y-3">
-      {sortedStages.map((stage) => (
+      {stages.map((stage) => (
         <div
           key={stage.id}
           className="bg-primary rounded-lg p-4 flex items-center justify-between transition-all hover:bg-primary/90"
@@ -60,18 +55,13 @@ export function ClaimTimeline({ stages }: ClaimTimelineProps) {
           </div>
 
           {/* Status Badge */}
-          <div className="flex items-center gap-2">
-            {(stage.status === "On Hold" || stage.status === "Completed") && (
-              <Check className="h-4 w-4 text-primary-foreground/80" />
-            )}
-            <span
-              className={`px-3 py-1 rounded text-sm font-medium ${getStatusStyle(
-                stage.status
-              )}`}
-            >
-              {stage.status}
-            </span>
-          </div>
+          <span
+            className={`px-3 py-1 rounded text-sm font-medium ${getStatusStyle(
+              stage.status
+            )}`}
+          >
+            {stage.status}
+          </span>
         </div>
       ))}
     </div>
