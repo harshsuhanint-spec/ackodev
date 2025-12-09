@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import {
   Table,
   TableBody,
@@ -213,6 +214,12 @@ function getBreachStyle(breach: string): string {
 }
 
 export function ClaimsTable() {
+  const navigate = useNavigate();
+
+  const handleRowClick = (claimNumber: string) => {
+    navigate(`/claims/pets/${claimNumber}`);
+  };
+
   return (
     <div className="border border-border rounded-lg overflow-hidden bg-card">
       <Table>
@@ -235,6 +242,7 @@ export function ClaimsTable() {
           {dummyClaims.map((claim) => (
             <TableRow
               key={claim.claimNumber}
+              onClick={() => handleRowClick(claim.claimNumber)}
               className="hover:bg-muted/30 cursor-pointer transition-colors"
             >
               <TableCell className="font-medium text-primary">

@@ -13,18 +13,41 @@ const notifications = [
   { id: 3, title: "Document verification pending", time: "3 hours ago", read: true },
 ];
 
-export function Header() {
+interface BreadcrumbItem {
+  label: string;
+  href?: string;
+}
+
+interface HeaderProps {
+  breadcrumb?: BreadcrumbItem[];
+}
+
+export function Header({ breadcrumb }: HeaderProps) {
   const [notifOpen, setNotifOpen] = useState(false);
   const unreadCount = notifications.filter((n) => !n.read).length;
+
+  const defaultBreadcrumb: BreadcrumbItem[] = [
+    { label: "Jarvis", href: "/" },
+    { label: "Claims" },
+  ];
+
+  const items = breadcrumb || defaultBreadcrumb;
 
   return (
     <header className="h-14 bg-card border-b border-border flex items-center justify-between px-4">
       <div className="flex items-center gap-2 text-sm">
-        <Link to="/" className="font-semibold text-foreground hover:text-primary transition-colors">
-          Jarvis
-        </Link>
-        <ChevronRight className="h-4 w-4 text-muted-foreground" />
-        <span className="text-muted-foreground">Claims</span>
+        {items.map((item, index) => (
+          <div key={index} className="flex items-center gap-2">
+            {index > 0 && <ChevronRight className="h-4 w-4 text-muted-foreground" />}
+            {item.href ? (
+              <Link to={item.href} className="font-semibold text-foreground hover:text-primary transition-colors">
+                {item.label}
+              </Link>
+            ) : (
+              <span className="text-muted-foreground">{item.label}</span>
+            )}
+          </div>
+        ))}
       </div>
 
       <div className="flex items-center gap-4">
