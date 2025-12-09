@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { CheckAdmissibilityStage } from "./CheckAdmissibilityStage";
+import { DocumentVerificationStage } from "./DocumentVerificationStage";
 
 type StageStatus = "Pending" | "Submitted" | "On Hold" | "Cancelled" | "Completed";
 
@@ -31,6 +32,19 @@ function getStatusStyle(status: StageStatus): string {
   }
 }
 
+function generateTimestamp(): string {
+  const now = new Date();
+  return now.toLocaleString("en-US", { 
+    hour: "numeric", 
+    minute: "2-digit", 
+    hour12: true 
+  }) + " | " + now.toLocaleDateString("en-US", { 
+    month: "short", 
+    day: "2-digit", 
+    year: "numeric" 
+  });
+}
+
 export function ClaimTimeline({ stages, onStagesUpdate }: ClaimTimelineProps) {
   const [expandedStageId, setExpandedStageId] = useState<number | null>(null);
   const [localStages, setLocalStages] = useState(stages);
@@ -39,21 +53,11 @@ export function ClaimTimeline({ stages, onStagesUpdate }: ClaimTimelineProps) {
     setExpandedStageId(prev => prev === stageId ? null : stageId);
   };
 
+  // Stage 1 handlers
   const handleApproveAdmissibility = () => {
-    const now = new Date();
-    const timestamp = now.toLocaleString("en-US", { 
-      hour: "numeric", 
-      minute: "2-digit", 
-      hour12: true 
-    }) + " | " + now.toLocaleDateString("en-US", { 
-      month: "short", 
-      day: "2-digit", 
-      year: "numeric" 
-    });
-
     const updatedStages: Stage[] = [
-      { ...localStages[0], status: "Completed", dateTime: timestamp },
-      { id: 2, title: "Documents Requested", dateTime: null, status: "Pending" }
+      { ...localStages[0], status: "Completed", dateTime: generateTimestamp() },
+      { id: 2, title: "Document Verification", dateTime: null, status: "Pending" }
     ];
     
     setLocalStages(updatedStages);
@@ -61,14 +65,63 @@ export function ClaimTimeline({ stages, onStagesUpdate }: ClaimTimelineProps) {
     onStagesUpdate?.(updatedStages);
   };
 
-  const handleRequestDocuments = (note: string) => {
-    console.log("Document request note:", note);
+  const handleRequestDocumentsStage1 = (note: string) => {
+    console.log("Stage 1 - Document request note:", note);
     const updatedStages = localStages.map(stage => 
       stage.id === 1 ? { ...stage, status: "On Hold" as StageStatus } : stage
     );
     setLocalStages(updatedStages);
     setExpandedStageId(null);
     onStagesUpdate?.(updatedStages);
+  };
+
+  // Stage 2 handlers
+  const handleApproveDocuments = () => {
+    const updatedStages: Stage[] = [
+      ...localStages.slice(0, 2).map((stage, index) => 
+        index === 1 ? { ...stage, status: "Completed" as StageStatus, dateTime: generateTimestamp() } : stage
+      ),
+      { id: 3, title: "Claim Verification", dateTime: null, status: "Pending" }
+    ];
+    
+    setLocalStages(updatedStages);
+    setExpandedStageId(null);
+    onStagesUpdate?.(updatedStages);
+  };
+
+  const handleRequestDocumentsStage2 = (note: string) => {
+    console.log("Stage 2 - Document request note:", note);
+    const updatedStages = localStages.map(stage => 
+      stage.id === 2 ? { ...stage, status: "On Hold" as StageStatus } : stage
+    );
+    setLocalStages(updatedStages);
+    setExpandedStageId(null);
+    onStagesUpdate?.(updatedStages);
+  };
+
+  const renderExpandedStage = (stage: Stage) => {
+    if (expandedStageId !== stage.id) return null;
+
+    switch (stage.title) {
+      case "Check Admissibility":
+        return (
+          <CheckAdmissibilityStage
+            onApprove={handleApproveAdmissibility}
+            onRequestDocuments={handleRequestDocumentsStage1}
+            onClose={() => setExpandedStageId(null)}
+          />
+        );
+      case "Document Verification":
+        return (
+          <DocumentVerificationStage
+            onApprove={handleApproveDocuments}
+            onRequestDocuments={handleRequestDocumentsStage2}
+            onClose={() => setExpandedStageId(null)}
+          />
+        );
+      default:
+        return null;
+    }
   };
 
   return (
@@ -109,13 +162,7 @@ export function ClaimTimeline({ stages, onStagesUpdate }: ClaimTimelineProps) {
           </div>
 
           {/* Expanded Stage Content */}
-          {expandedStageId === stage.id && stage.title === "Check Admissibility" && (
-            <CheckAdmissibilityStage
-              onApprove={handleApproveAdmissibility}
-              onRequestDocuments={handleRequestDocuments}
-              onClose={() => setExpandedStageId(null)}
-            />
-          )}
+          {renderExpandedStage(stage)}
         </div>
       ))}
     </div>
